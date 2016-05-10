@@ -5,6 +5,7 @@ import (
 )
 
 type Middleware []http.Handler
+
 type MiddlewareResponseWriter struct {
 	http.ResponseWriter
 	written bool

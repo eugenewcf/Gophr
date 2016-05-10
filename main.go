@@ -4,27 +4,23 @@ import (
 	"fmt"
 	"net/http"
 	"github.com/julienschmidt/httprouter"
+	"log"
 )
 
 func main() {
-	unathenticatedRouter := NewRouter()
-	unathenticatedRouter.GET("/", HandleHome)
-	unathenticatedRouter.GET("/register", HandleRegister)
+	router := NewRouter()
 
-	authenticatedRouter := NewRouter()
-	authenticatedRouter.GET("/images/new", HandleImageNew)
+	router.Handle("GET", "/", HandleHome)
 
-	staticFilesRouter := NewRouter()
-	staticFilesRouter.ServeFiles("/assets/*filepath", http.Dir("assets/"))
+	router.ServeFiles(
+		"/assets/*filepath",
+		http.Dir("assets/"),
+	)
 
 	middleware := Middleware{}
-	middleware.Add(unathenticatedRouter)
-	middleware.Add(staticFilesRouter)
-	middleware.Add(http.HandlerFunc(AuthenticateRequest))
-	middleware.Add(authenticatedRouter)
-
-	fmt.Println("Listening on :3000")
-	http.ListenAndServe(":3000", middleware)
+	middleware.Add(router)
+	fmt.Println("Listening on port :3000...")
+	log.Fatal(http.ListenAndServe(":3000", middleware))
 }
 
 type NotFound struct {}
