@@ -2,15 +2,17 @@ package main
 
 import (
 	"fmt"
-	"net/http"
 	"github.com/julienschmidt/httprouter"
 	"log"
+	"net/http"
 )
 
 func main() {
 	router := NewRouter()
 
 	router.Handle("GET", "/", HandleHome)
+	router.Handle("GET", "/register", HandleUserNew)
+	router.Handle("POST", "/register", HandleUserCreate)
 
 	router.ServeFiles(
 		"/assets/*filepath",
@@ -23,9 +25,9 @@ func main() {
 	log.Fatal(http.ListenAndServe(":3000", middleware))
 }
 
-type NotFound struct {}
+type NotFound struct{}
 
-func (n *NotFound) ServeHTTP(w http.ResponseWriter, r *http.Request){
+func (n *NotFound) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func NewRouter() *httprouter.Router {
