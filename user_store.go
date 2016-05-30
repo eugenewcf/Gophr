@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	// "io/ioutil"
 	"os"
 	"fmt"
 	"strings"
@@ -16,7 +16,7 @@ type UserStore interface {
 }
 
 type FileUserStore struct {
-	filename string
+	FileStore
 	Users    map[string]User
 }
 
@@ -41,10 +41,13 @@ func init() {
 func NewFileUserStore(filename string) (*FileUserStore, error) {
 	store := &FileUserStore{
 		Users: map[string]User{},
-		filename: filename,
+		FileStore: FileStore{
+			filename: filename,
+		},
 	}
 
-	contents, err := ioutil.ReadFile(filename)
+	// contents, err := ioutil.ReadFile(filename)
+	contents, err := store.FileStore.Read()
 
 	if err != nil {
 		// If it's a matter of the file not existing, that's ok
@@ -70,7 +73,8 @@ func (store FileUserStore) Save(user User) error {
 		return err
 	}
 
-	err = ioutil.WriteFile(store.filename, contents, 0660)
+	// err = ioutil.WriteFile(store.filename, contents, 0660)
+	err = store.FileStore.Write(contents)
 	if err != nil {
 		return err
 	}

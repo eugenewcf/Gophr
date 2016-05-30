@@ -11,7 +11,7 @@ const (
 type User struct {
 	Username     string
 	Email        string
-	HashPassword string
+	HashedPassword string
 	ID           string
 }
 
@@ -64,8 +64,72 @@ func NewUser(username, email, password string) (User, []error) {
 	}
 
 	hashPassword, err := bcrypt.GenerateFromPassword([]byte(password), hashCost)
-	user.HashPassword = string(hashPassword)
+	user.HashedPassword = string(hashPassword)
 	user.ID = GenerateID("usr", userIDLength)
 
 	return user, errs
+}
+
+func FindUser(username, password string) (*User, error) {
+	out := &User{
+		Username: username,
+	}
+
+	existingUser, err := globalUserStore.FindByUsername(username)
+	if err != nil {
+		return out, err
+	}
+	if existingUser == nil {
+		return out, errCredentialsIncorrect
+	}
+
+	if bcrypt.CompareHashAndPassword(
+		[]byte(existingUser.HashedPassword),
+		[]byte(password),
+	) != nil {
+		return out, errCredentialsIncorrect
+	}
+	return existingUser, nil
+}
+
+func UpdateUser(user *User, email, currentPassword, newPassword string) (User, error){
+	out := *user
+	out.Email = email
+
+	// Check if the email exists
+	existingUser, err := globalUserStore.FindByEmail(email)
+	if err != nil {
+		return out, err
+	}
+	if existingUser != nil && existingUser.ID != user.ID {
+		return out, errEmailExists
+	}
+
+	// At this point, we can update the email address
+	user.Email = email
+
+	// No current password? Don't try update the password
+	if currentPassword == "" {
+		return out, nil
+	}
+
+	if bcrypt.CompareHashAndPassword(
+		[]byte(user.HashedPassword),
+		[]byte(currentPassword),
+	) != nil {
+		return out, errPasswordIncorrect
+	}
+
+
+	if newPassword == "" {
+		return out, errNoPassword
+	}
+
+	if len(newPassword) < passwordLength {
+		return out, errPasswordTooShort
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), hashCost)
+	user.HashedPassword = string(hashedPassword)
+	return out, err
 }
