@@ -3,8 +3,8 @@ package main
 import (
 	"encoding/json"
 	// "io/ioutil"
+	_ "fmt"
 	"os"
-	"fmt"
 	"strings"
 )
 
@@ -17,26 +17,12 @@ type UserStore interface {
 
 type FileUserStore struct {
 	FileStore
-	Users    map[string]User
+	Users map[string]User
 }
 
 var globalUserStore UserStore
-var globalUserEmailMapping map[string] *User
-var globalUserUsernameMapping map[string] *User
-
-func init() {
-	store, err := NewFileUserStore("./data/users.json")
-	if err != nil {
-		panic(fmt.Errorf("Error creating user store: %s", err))
-	}
-	globalUserStore = store
-	globalUserEmailMapping = map[string] *User{}
-	globalUserUsernameMapping = map[string] *User{}
-	for _, user := range store.Users {
-		globalUserEmailMapping[strings.ToLower(user.Email)] = &user
-		globalUserUsernameMapping[strings.ToLower(user.Username)] = &user
-	}
-}
+var globalUserEmailMapping map[string]*User
+var globalUserUsernameMapping map[string]*User
 
 func NewFileUserStore(filename string) (*FileUserStore, error) {
 	store := &FileUserStore{

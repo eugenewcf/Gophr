@@ -1,6 +1,11 @@
 package main
 
-import "golang.org/x/crypto/bcrypt"
+import (
+	"crypto/md5"
+	"fmt"
+	"golang.org/x/crypto/bcrypt"
+	// "io"
+)
 
 const (
 	passwordLength = 8
@@ -9,10 +14,10 @@ const (
 )
 
 type User struct {
-	Username     string
-	Email        string
+	Username       string
+	Email          string
 	HashedPassword string
-	ID           string
+	ID             string
 }
 
 func NewUser(username, email, password string) (User, []error) {
@@ -36,7 +41,7 @@ func NewUser(username, email, password string) (User, []error) {
 	if password == "" {
 		// return user, errNoPassword
 		errs = append(errs, errNoPassword)
-	}else if len(password) < passwordLength {
+	} else if len(password) < passwordLength {
 		// return user, errPasswordTooShort
 		errs = append(errs, errPasswordTooShort)
 	}
@@ -92,7 +97,7 @@ func FindUser(username, password string) (*User, error) {
 	return existingUser, nil
 }
 
-func UpdateUser(user *User, email, currentPassword, newPassword string) (User, error){
+func UpdateUser(user *User, email, currentPassword, newPassword string) (User, error) {
 	out := *user
 	out.Email = email
 
@@ -120,7 +125,6 @@ func UpdateUser(user *User, email, currentPassword, newPassword string) (User, e
 		return out, errPasswordIncorrect
 	}
 
-
 	if newPassword == "" {
 		return out, errNoPassword
 	}
@@ -132,4 +136,15 @@ func UpdateUser(user *User, email, currentPassword, newPassword string) (User, e
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), hashCost)
 	user.HashedPassword = string(hashedPassword)
 	return out, err
+}
+
+func (user *User) AvatarURL() string {
+	return fmt.Sprintf(
+		"//www.gravatar.com/avatar/%x",
+		md5.Sum([]byte(user.Email)),
+	)
+}
+
+func (user *User) ImageRoute() string {
+	return "/user/" + user.ID
 }

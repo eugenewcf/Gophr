@@ -1,23 +1,24 @@
 package main
+
 import (
-  "io/ioutil"
-  // "fmt"
-  // "os"
+	"io/ioutil"
+	// "fmt"
+	// "os"
 )
 
 type Store interface {
-  Write([]byte) error
-  Read() ([]byte, error)
+	Write([]byte) error
+	Read() ([]byte, error)
 }
 
 type FileStore struct {
-  filename string
+	filename string
 }
 
-func (store *FileStore) Write(contents []byte) error{
-  return ioutil.WriteFile(store.filename, contents, 0660)
+func (store *FileStore) Write(contents []byte) error {
+	return ioutil.WriteFile(store.filename, contents, 0660)
 }
 
-func (store * FileStore) Read() ([]byte, error) {
-  return ioutil.ReadFile(store.filename)
+func (store *FileStore) Read() ([]byte, error) {
+	return ioutil.ReadFile(store.filename)
 }

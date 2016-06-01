@@ -26,9 +26,9 @@ func HandleUserCreate(w http.ResponseWriter, r *http.Request, _ httprouter.Param
 	if len(errs) > 0 {
 		var errMsgs []string
 		for _, err := range errs {
-			if IsValidationError(err){
+			if IsValidationError(err) {
 				errMsgs = append(errMsgs, err.Error())
-			}else{
+			} else {
 				panic(err)
 				break
 			}
@@ -38,8 +38,8 @@ func HandleUserCreate(w http.ResponseWriter, r *http.Request, _ httprouter.Param
 			RenderTemplate(w, r, "users/new", map[string]interface{}{
 				// "Error": err.Error(),
 				"Errors": errMsgs,
-				"User":  user,
-				"Next": next,
+				"User":   user,
+				"Next":   next,
 			})
 			return
 		}
@@ -62,7 +62,7 @@ func HandleUserCreate(w http.ResponseWriter, r *http.Request, _ httprouter.Param
 	http.Redirect(w, r, next+"?flash=User+created", http.StatusFound)
 }
 
-func HandleUserEdit (w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func HandleUserEdit(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	user := RequestUser(r)
 
 	RenderTemplate(w, r, "users/edit", map[string]interface{}{
@@ -70,7 +70,7 @@ func HandleUserEdit (w http.ResponseWriter, r *http.Request, _ httprouter.Params
 	})
 }
 
-func HandleUserUpdate (w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func HandleUserUpdate(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	currentUser := RequestUser(r)
 	email := r.FormValue("email")
 	currentPassword := r.FormValue("currentPassword")
@@ -81,7 +81,7 @@ func HandleUserUpdate (w http.ResponseWriter, r *http.Request, _ httprouter.Para
 		if IsValidationError(err) {
 			RenderTemplate(w, r, "users/edit", map[string]interface{}{
 				"Error": err.Error(),
-				"User": user,
+				"User":  user,
 			})
 			return
 		}
@@ -94,4 +94,27 @@ func HandleUserUpdate (w http.ResponseWriter, r *http.Request, _ httprouter.Para
 	}
 
 	http.Redirect(w, r, "/account?flash=User+updated", http.StatusFound)
+}
+
+func HandleUserShow(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	user, err := globalUserStore.Find(params.ByName("userID"))
+	if err != nil {
+		panic(err)
+	}
+
+	// 404
+	if user == nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	images, err := globalImageStore.FindAllByUser(user, 0)
+	if err != nil {
+		panic(err)
+	}
+
+	RenderTemplate(w, r, "users/show", map[string]interface{}{
+		"Images": images,
+		"User": user,
+	})
 }
